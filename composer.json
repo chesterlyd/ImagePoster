@@ -1,5 +1,5 @@
 {
-    "name": "chester/image-poster",
+    "name": "chesterlyd/image-poster",
     "description": "generate poster image",
     "type": "project",
     "license": "MIT",
@@ -17,7 +17,7 @@
     },
     "autoload": {
         "psr-4": {
-            "chester\\image-poster\\": "src/"
+            "chesterlyd\\image-poster\\": "src/"
         }
     }
 }
