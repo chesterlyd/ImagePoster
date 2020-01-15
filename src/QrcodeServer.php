@@ -94,8 +94,7 @@ class QrcodeServer
             $file_name = $this->_file_name;
             return $this->generateImg($file_name);
         } else if ($this->_generate == 'postimage') {
-            $file_name = $this->_file_name;
-            $src_im = $this->generateImg($file_name);
+            $src_im = $this->_qr->writeString();
             $this->generatePosterImage($this->_back_img_url, $src_im['data']['url'], $this->_font, $this->_poster_text_size, $this->_poster_text, $this->_poster_text_rgb, $this->_poster_text_x, $this->_poster_text_y);
         } else {
             return ['success' => false, 'message' => 'the generate type not found', 'data' => ''];
