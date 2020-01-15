@@ -13,6 +13,8 @@ class QrcodeServer
     protected $_qr;
     protected $_encoding        = 'UTF-8';              // 编码类型
     protected $_size            = 300;                  // 二维码大小
+    protected $_qrCode_x        = 300;                  // 二维码X位置
+    protected $_qrCode_y        = 300;                  // 二维码Y位置
     protected $_logo            = false;                // 是否需要带logo的二维码
     protected $_logo_url        = '';                   // logo图片路径
     protected $_logo_size       = 80;                   // logo大小
@@ -37,20 +39,22 @@ class QrcodeServer
         isset($config['generate'])          &&  $this->_generate          = $config['generate'];
         isset($config['encoding'])          &&  $this->_encoding          = $config['encoding'];
         isset($config['size'])              &&  $this->_size              = $config['size'];
+        isset($config['qrCode_x'])          &&  $this->_qrCode_x          = $config['qrCode_x'];
+        isset($config['qrCode_y'])          &&  $this->_qrCode_y          = $config['qrCode_y'];
         isset($config['logo'])              &&  $this->_logo              = $config['logo'];
         isset($config['logo_url'])          &&  $this->_logo_url          = $config['logo_url'];
         isset($config['logo_size'])         &&  $this->_logo_size         = $config['logo_size'];
         isset($config['title'])             &&  $this->_title             = $config['title'];
         isset($config['title_content'])     &&  $this->_title_content     = $config['title_content'];
         isset($config['file_name'])         &&  $this->_file_name         = $config['file_name'];
-        isset($config['_back_img'])         &&  $this->_back_img          = $config['_back_img'];
-        isset($config['_back_img_url'])     &&  $this->_back_img_url      = $config['_back_img_url'];
-        isset($config['_font'])             &&  $this->_font              = $config['_font'];
-        isset($config['_poster_text_size']) &&  $this->_poster_text_size  = $config['_poster_text_size'];
-        isset($config['_poster_text'])      &&  $this->_poster_text       = $config['_poster_text'];
-        isset($config['_poster_text_rgb'])  &&  $this->_poster_text_rgb   = $config['_poster_text_rgb'];
-        isset($config['_poster_text_x'])    &&  $this->_poster_text_x     = $config['_poster_text_x'];
-        isset($config['_poster_text_y'])    &&  $this->_poster_text_y     = $config['_poster_text_y'];
+        isset($config['back_img'])          &&  $this->_back_img          = $config['back_img'];
+        isset($config['back_img_url'])      &&  $this->_back_img_url      = $config['back_img_url'];
+        isset($config['font'])              &&  $this->_font              = $config['font'];
+        isset($config['poster_text_size'])  &&  $this->_poster_text_size  = $config['poster_text_size'];
+        isset($config['poster_text'])       &&  $this->_poster_text       = $config['poster_text'];
+        isset($config['poster_text_rgb'])   &&  $this->_poster_text_rgb   = $config['poster_text_rgb'];
+        isset($config['poster_text_x'])     &&  $this->_poster_text_x     = $config['poster_text_x'];
+        isset($config['poster_text_y'])     &&  $this->_poster_text_y     = $config['poster_text_y'];
     }
 
     /**
@@ -92,7 +96,7 @@ class QrcodeServer
         } else if ($this->_generate == 'postimage') {
             $file_name = $this->_file_name;
             $src_im = $this->generateImg($file_name);
-            $this->generatePosterImage($this->_back_img_url, $src_im['data'], $this->_font, $this->_poster_text_size, $this->_poster_text, $this->_poster_text_rgb, $this->_poster_text_x, $this->_poster_text_y);
+            $this->generatePosterImage($this->_back_img_url, $src_im['data']['url'], $this->_font, $this->_poster_text_size, $this->_poster_text, $this->_poster_text_rgb, $this->_poster_text_x, $this->_poster_text_y);
         } else {
             return ['success' => false, 'message' => 'the generate type not found', 'data' => ''];
         }
@@ -122,17 +126,17 @@ class QrcodeServer
         }
     }
 
-    public function generatePosterImage($dst_im, $src_im, $font, $size, $text, array $text_rgb, $text_x, $text_y)
+    public function generatePosterImage($dst_im, $src_im)
     {
         list($dst_w, $dst_h, $dst_type) = getimagesize($dst_im);
         list($src_w, $src_h) = getimagesize($src_im);
-        $dst_x = ($dst_w - $src_w) / 2;
-        $dst_y = ($dst_h - $src_h) / 2;
+        $dst_x = $this->_qrCode_x;
+        $dst_y = $this->_qrCode_y;
         $dst = imagecreatefromstring(file_get_contents($dst_im));
         $src = imagecreatefromstring(file_get_contents($src_im));
 //imagecopymerge($dst, $src, 10, 10, 0, 0, $src_w, $src_h, 50);
-        $black = imagecolorallocate($dst, $text_rgb['r'], $text_rgb['g'], $text_rgb['b']);
-        imagettftext($dst, $size, 0, $text_x, $text_y, $black, $font, $text);
+        $black = imagecolorallocate($dst, $this->_poster_text_rgb['r'], $this->_poster_text_rgb['g'], $this->_poster_text_rgb['b']);
+        imagettftext($dst, $this->_poster_text_size, 0, $this->_poster_text_x, $this->_poster_text_y, $black, $this->_font, $this->_poster_text);
         imagecopy($dst, $src, $dst_x, $dst_y, 0, 0, $src_w, $src_h);
 
         switch ($dst_type) {
