@@ -1,0 +1,23 @@
+{
+    "name": "chester/image-poster",
+    "description": "generate poster image",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "chester lyd",
+            "email": "1621259898@qq.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=7.0",
+        "endroid/qr-code": "^3.7",
+        "ext-gd": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "chester\\image-poster\\": "src/"
+        }
+    }
+}
