@@ -2,13 +2,13 @@
 /**
  * DateTime: 2020/1/13 9:41
  */
-namespace LYD\QrCodeImage;
+namespace chesterlyd\imagePoster;
 
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\LabelAlignment;
 use Endroid\QrCode\QrCode;
 
-class index
+class QrcodeServer
 {
     protected $_qr;
     protected $_encoding        = 'UTF-8';              // 编码类型
