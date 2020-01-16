@@ -30,6 +30,7 @@ class QrcodeServer
     protected $_poster_text_rgb = [];                   // 海报文字颜色
     protected $_poster_text_x   = '';                   // 海报文字x位置
     protected $_poster_text_y   = '';                   // 海报文字y位置
+    protected $_poster_img_name = '';                   // 海报文件名
     const MARGIN           = 10;                        // 二维码内容相对于整张图片的外边距
     const WRITE_NAME       = 'png';                     // 写入文件的后缀名
     const FOREGROUND_COLOR = ['r' => 0, 'g' => 0, 'b' => 0, 'a' => 0];          // 前景色
@@ -55,6 +56,7 @@ class QrcodeServer
         isset($config['poster_text_rgb'])   &&  $this->_poster_text_rgb   = $config['poster_text_rgb'];
         isset($config['poster_text_x'])     &&  $this->_poster_text_x     = $config['poster_text_x'];
         isset($config['poster_text_y'])     &&  $this->_poster_text_y     = $config['poster_text_y'];
+        isset($config['poster_img_name'])   &&  $this->_poster_img_name   = $config['poster_img_name'];
     }
 
     /**
@@ -94,8 +96,10 @@ class QrcodeServer
             $file_name = $this->_file_name;
             return $this->generateImg($file_name);
         } else if ($this->_generate == 'postimage') {
-            $src_im = $this->_qr->writeString();
-            $this->generatePosterImage($this->_back_img_url, $src_im['data']['url'], $this->_font, $this->_poster_text_size, $this->_poster_text, $this->_poster_text_rgb, $this->_poster_text_x, $this->_poster_text_y);
+            $file_name = $this->_file_name;
+            $src_im = $this->generateImg($file_name);
+            $poster_file_name = $this->generatePosterImage($this->_back_img_url, $src_im['data']['url']);
+            return ['success' => false, 'message' => 'the generate type not found', 'data' => $poster_file_name];
         } else {
             return ['success' => false, 'message' => 'the generate type not found', 'data' => ''];
         }
@@ -127,7 +131,7 @@ class QrcodeServer
 
     public function generatePosterImage($dst_im, $src_im)
     {
-        list($dst_w, $dst_h, $dst_type) = getimagesize($dst_im);
+        $dst_type = getimagesize($dst_im);
         list($src_w, $src_h) = getimagesize($src_im);
         $dst_x = $this->_qrCode_x;
         $dst_y = $this->_qrCode_y;
@@ -138,27 +142,67 @@ class QrcodeServer
         imagettftext($dst, $this->_poster_text_size, 0, $this->_poster_text_x, $this->_poster_text_y, $black, $this->_font, $this->_poster_text);
         imagecopy($dst, $src, $dst_x, $dst_y, 0, 0, $src_w, $src_h);
 
-        switch ($dst_type) {
-            case 1://GIF
-                header('Content-Type: image/gif');
-                header('Content-Disposition: inline; filename="image.gif"');
-                imagegif($dst);
-                break;
-            case 2://JPG
-                header('Content-Type: image/jpeg');
-                header('Content-Disposition: inline; filename="image.jpg"');
-                imagejpeg($dst);
-                break;
-            case 3://PNG
-                header('Content-Type: image/png');
-                header('Content-Disposition: inline; filename="image.png"');
-                imagepng($dst);
-                break;
-            default:
-                break;
+        if ($this->_back_img) {
+            $file_name = '';
+
+            if (!file_exists('uploads')) {
+                mkdir('uploads', 0777, true);
+            }
+
+            if (!file_exists('uploads/'. date('Ymd'))) {
+                mkdir('uploads/'. date('Ymd'), 0777, true);
+            }
+
+            switch ($dst_type[2]) {
+                case 1://GIF
+//                header('Content-Type: image/gif');
+//                header('Content-Disposition: inline; filename="image.gif"');
+                    imagegif($dst, 'uploads/'.date('Ymd'). '/'. $this->_poster_img_name . '.gif');
+                    $file_name = 'uploads/'.date('Ymd'). '/'. $this->_poster_img_name . '.gif';
+                    break;
+                case 2://JPG
+//                header('Content-Type: image/jpeg');
+//                header('Content-Disposition: inline; filename="image.jpg"');
+                    imagejpeg($dst, 'uploads/'.date('Ymd'). '/'. $this->_poster_img_name . '.jpg');
+                    $file_name = 'uploads/'.date('Ymd'). '/'. $this->_poster_img_name . '.jpg';
+                    break;
+                case 3://PNG
+//                header('Content-Type: image/png');
+//                header('Content-Disposition: inline; filename="image.png"');
+                    imagepng($dst, 'uploads/'.date('Ymd'). '/'. $this->_poster_img_name . '.png');
+                    $file_name = 'uploads/'.date('Ymd'). '/'. $this->_poster_img_name . '.png';
+                    break;
+                default:
+                    break;
+            }
+            imagedestroy($dst);
+            imagedestroy($src);
+            return $file_name;
+        } else {
+            switch ($dst_type[2]) {
+                case 1://GIF
+                    header('Content-Type: image/gif');
+                    header('Content-Disposition: inline; filename="image.gif"');
+                    imagegif($dst);
+                    break;
+                case 2://JPG
+                    header('Content-Type: image/jpeg');
+                    header('Content-Disposition: inline; filename="image.jpg"');
+                    imagejpeg($dst);
+                    break;
+                case 3://PNG
+                    header('Content-Type: image/png');
+                    header('Content-Disposition: inline; filename="image.png"');
+                    imagepng($dst);
+                    break;
+                default:
+                    break;
+            }
+
+            imagedestroy($dst);
+            imagedestroy($src);
+            exit();
         }
-        imagedestroy($dst);
-        imagedestroy($src);
-        exit;
+
     }
 }
